@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Detalle del producto</title>
+	<link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body>
+	<main class="page-shell narrow-shell">
+		<nav class="topbar" aria-label="Navegación principal">
+			<a class="brand" th:href="@{/productos}"><span class="brand-mark">T</span> Tienda</a>
+			<span class="topbar-label">Panel de inventario</span>
+		</nav>
+		<a class="back-link" th:href="@{/productos}">&larr; Volver al catálogo</a>
+		<section class="detail-panel">
+			<div class="detail-topline">
+				<p class="eyebrow">Detalle del producto</p>
+				<span class="status-badge">Activo</span>
+			</div>
+			<h1 th:text="${producto.nombre}">Nombre del producto</h1>
+			<p class="detail-id" th:text="${'Código #' + producto.id}">Código #1</p>
+			<div class="detail-price" th:text="${'$ ' + #numbers.formatDecimal(producto.precio, 1, 2)}">$ 0.00</div>
+			<div class="detail-actions">
+				<a class="button button-primary" th:href="@{/productos/editar/{id}(id=${producto.id})}">Editar producto</a>
+				<form th:action="@{/productos/eliminar/{id}(id=${producto.id})}" method="post" onsubmit="return confirm('¿Eliminar este producto?');">
+					<button class="button button-danger" type="submit">Eliminar</button>
+				</form>
+			</div>
+		</section>
+	</main>
+</body>
+
+</html>

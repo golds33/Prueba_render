@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Productos | Inventario</title>
+	<link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body>
+	<main class="page-shell">
+		<nav class="topbar" aria-label="Navegación principal">
+			<a class="brand" th:href="@{/productos}"><span class="brand-mark">T</span> Tienda</a>
+			<span class="topbar-label">Panel de inventario</span>
+		</nav>
+		<header class="page-header">
+			<div>
+				<p class="eyebrow">Inventario</p>
+				<h1>Productos</h1>
+				<p class="subtitle">Administra tu catálogo desde un solo lugar.</p>
+			</div>
+			<a class="button button-primary" th:href="@{/productos/nuevo}"><span class="button-icon">+</span> Nuevo producto</a>
+		</header>
+
+		<section class="summary-grid" aria-label="Resumen del inventario">
+			<div class="summary-card accent-card">
+				<span class="summary-label">Productos registrados</span>
+				<strong th:text="${#lists.size(productos)}">0</strong>
+				<span>en tu catálogo actual</span>
+			</div>
+			<div class="summary-card">
+				<span class="summary-label">Gestión rápida</span>
+				<strong>CRUD</strong>
+				<span>crear, consultar, editar y eliminar</span>
+			</div>
+		</section>
+
+		<section class="content-panel">
+			<div class="panel-heading">
+				<div>
+					<h2>Catálogo actual</h2>
+					<p th:text="${#lists.size(productos) + ' producto(s) registrados'}">0 producto(s) registrados</p>
+				</div>
+				<span class="live-indicator"><span></span> Actualizado</span>
+			</div>
+
+			<div class="table-wrapper" th:if="${not #lists.isEmpty(productos)}">
+				<table>
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Producto</th>
+							<th>Precio</th>
+							<th class="actions-column">Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="p : ${productos}">
+							<td class="muted" th:text="${'#' + p.id}"></td>
+							<td class="product-name" th:text="${p.nombre}"></td>
+							<td class="price" th:text="${'$ ' + #numbers.formatDecimal(p.precio, 1, 2)}"></td>
+							<td class="actions">
+								<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}" title="Ver detalle">Ver</a>
+								<a class="action-link" th:href="@{/productos/editar/{id}(id=${p.id})}" title="Editar producto">Editar</a>
+								<form th:action="@{/productos/eliminar/{id}(id=${p.id})}" method="post" onsubmit="return confirm('¿Eliminar este producto?');">
+									<button class="action-link danger" type="submit" title="Eliminar producto">Eliminar</button>
+								</form>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="empty-state" th:if="${#lists.isEmpty(productos)}">
+				<strong>Tu catálogo está vacío</strong>
+				<p>Registra tu primer producto para empezar a organizar el inventario.</p>
+				<a class="button button-secondary" th:href="@{/productos/nuevo}">Registrar producto</a>
+			</div>
+		</section>
+	</main>
+
+</body>
+
+</html>

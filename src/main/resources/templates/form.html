@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title th:text="${producto.id == null ? 'Nuevo producto' : 'Editar producto'}">Nuevo producto</title>
+	<link rel="stylesheet" th:href="@{/styles.css}">
+</head>
+
+<body>
+	<main class="page-shell narrow-shell">
+		<nav class="topbar" aria-label="Navegación principal">
+			<a class="brand" th:href="@{/productos}"><span class="brand-mark">T</span> Tienda</a>
+			<span class="topbar-label">Panel de inventario</span>
+		</nav>
+		<a class="back-link" th:href="@{/productos}">&larr; Volver al catálogo</a>
+		<section class="form-panel">
+			<p class="eyebrow" th:text="${producto.id == null ? 'Nuevo registro' : 'Actualizar registro'}">Nuevo registro</p>
+			<h1 th:text="${producto.id == null ? 'Registrar producto' : 'Editar producto'}">Registrar producto</h1>
+			<p class="subtitle">Completa la información principal del producto.</p>
+
+			<form class="product-form" th:action="@{/productos/guardar}" th:object="${producto}" method="post">
+
+				<input type="hidden" th:field="*{id}">
+
+				<label for="nombre">Nombre del producto</label>
+				<input id="nombre" type="text" th:field="*{nombre}" placeholder="Ej. Café molido" required maxlength="120">
+
+				<label for="precio">Precio</label>
+				<div class="input-prefix"><span>$</span><input id="precio" type="number" step="0.01" min="0" th:field="*{precio}" placeholder="0.00" required></div>
+
+				<div class="form-actions">
+					<a class="button button-secondary" th:href="@{/productos}">Cancelar</a>
+					<button class="button button-primary" type="submit" th:text="${producto.id == null ? 'Guardar producto' : 'Guardar cambios'}">Guardar producto</button>
+				</div>
+
+			</form>
+		</section>
+	</main>
+
+</body>
+
+</html>
