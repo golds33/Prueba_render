@@ -222,6 +222,71 @@ h2 {
 	background: #e8f6f3;
 }
 
+.restore-panel {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(320px, 1fr);
+	gap: 28px;
+	align-items: center;
+	margin-bottom: 24px;
+	padding: 24px 28px;
+	border: 1px solid #f0c3bf;
+	border-radius: 8px;
+	background: #fff8f7;
+}
+
+.restore-panel h2 {
+	margin-bottom: 8px;
+}
+
+.restore-help {
+	margin-bottom: 0;
+	color: var(--muted);
+	font-family: Arial, sans-serif;
+	font-size: 0.9rem;
+}
+
+.restore-form {
+	display: grid;
+	gap: 8px;
+	font-family: Arial, sans-serif;
+}
+
+.restore-form label {
+	color: var(--ink);
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.restore-controls {
+	display: flex;
+	gap: 10px;
+}
+
+.restore-controls input {
+	min-width: 0;
+	flex: 1;
+	padding: 0 12px;
+	border: 1px solid #d6a7a3;
+	border-radius: 6px;
+	color: var(--ink);
+	background: #fff;
+}
+
+.restore-status {
+	min-height: 1.2em;
+	margin: 0;
+	color: var(--muted);
+	font-size: 0.78rem;
+}
+
+.restore-status.success {
+	color: var(--accent-dark);
+}
+
+.restore-status.error {
+	color: var(--danger);
+}
+
 .content-panel {
 	padding: 28px;
 	border-radius: 8px;
@@ -446,6 +511,19 @@ tbody tr:last-child td {
 }
 
 @media (max-width: 640px) {
+	.restore-panel {
+		grid-template-columns: 1fr;
+	}
+
+	.restore-controls {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.restore-controls input {
+		min-height: 44px;
+	}
+
 	.page-shell {
 		width: min(100% - 24px, 1120px);
 		padding: 30px 0 48px;

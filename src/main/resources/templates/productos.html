@@ -36,6 +36,22 @@
 			</div>
 		</section>
 
+		<section class="restore-panel" aria-labelledby="restore-title">
+			<div>
+				<p class="eyebrow">Recuperación</p>
+				<h2 id="restore-title">Restaurar base de datos</h2>
+				<p class="restore-help">Selecciona un momento anterior para recuperar la información de Neon.</p>
+			</div>
+			<form id="restore-form" class="restore-form">
+				<label for="restore-point">Punto de recuperación</label>
+				<div class="restore-controls">
+					<input id="restore-point" name="restore-point" type="datetime-local" required>
+					<button class="button button-danger" type="submit">Restaurar</button>
+				</div>
+				<p id="restore-status" class="restore-status" role="status" aria-live="polite"></p>
+			</form>
+		</section>
+
 		<section class="content-panel">
 			<div class="panel-heading">
 				<div>
@@ -79,6 +95,45 @@
 			</div>
 		</section>
 	</main>
+
+	<script>
+		const restoreForm = document.getElementById('restore-form');
+		const restorePoint = document.getElementById('restore-point');
+		const restoreStatus = document.getElementById('restore-status');
+
+		restoreForm.addEventListener('submit', async (event) => {
+			event.preventDefault();
+			const selectedDate = new Date(restorePoint.value);
+
+			if (!confirm('La restauración puede reemplazar datos actuales. ¿Deseas continuar?')) {
+				return;
+			}
+
+			restoreStatus.textContent = 'Solicitando restauración...';
+			restoreStatus.className = 'restore-status';
+
+			try {
+				const response = await fetch('/api/database/restore', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						restore_to_point_in_time: selectedDate.toISOString()
+					})
+				});
+				const result = await response.json().catch(() => ({}));
+
+				if (!response.ok) {
+					throw new Error(result.error || 'Neon rechazó la restauración.');
+				}
+
+				restoreStatus.textContent = 'Restauración solicitada correctamente.';
+				restoreStatus.className = 'restore-status success';
+			} catch (error) {
+				restoreStatus.textContent = error.message;
+				restoreStatus.className = 'restore-status error';
+			}
+		});
+	</script>
 
 </body>
 
