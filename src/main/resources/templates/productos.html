@@ -20,7 +20,8 @@
 				<h1>Productos</h1>
 				<p class="subtitle">Administra tu catálogo desde un solo lugar.</p>
 			</div>
-			<a class="button button-primary" th:href="@{/productos/nuevo}"><span class="button-icon">+</span> Nuevo producto</a>
+			<a class="button button-primary" th:href="@{/productos/nuevo}"><span class="button-icon">+</span> Nuevo
+				producto</a>
 		</header>
 
 		<section class="summary-grid" aria-label="Resumen del inventario">
@@ -36,20 +37,33 @@
 			</div>
 		</section>
 
-		<section class="restore-panel" aria-labelledby="restore-title">
+		<section class="demo-panel" aria-labelledby="demo-title">
 			<div>
-				<p class="eyebrow">Recuperación</p>
-				<h2 id="restore-title">Restaurar base de datos</h2>
-				<p class="restore-help">Selecciona un momento anterior para recuperar la información de Neon.</p>
+				<p class="eyebrow">Simulación en vivo</p>
+				<h2 id="demo-title">Demostración de Respaldo y Restauración</h2>
+				<p>Comprueba el ciclo de desastre y recuperación usando la copia fija de Google Drive.</p>
 			</div>
-			<form id="restore-form" class="restore-form">
-				<label for="restore-point">Punto de recuperación</label>
-				<div class="restore-controls">
-					<input id="restore-point" name="restore-point" type="datetime-local" required>
-					<button class="button button-danger" type="submit">Restaurar</button>
+			<div class="demo-actions">
+				<button id="delete-db-button" class="button button-danger" type="button">🔴 Simular Desastre (Eliminar
+					Base de Datos)</button>
+				<button id="restore-db-button" class="button button-success" type="button">🟢 Restaurar desde Google
+					Drive</button>
+			</div>
+			<p id="demo-status" class="demo-status" role="status" aria-live="polite"></p>
+		</section>
+
+		<section class="backup-panel" aria-labelledby="backup-title">
+			<div class="panel-heading backup-heading">
+				<div>
+					<p class="eyebrow">Google Drive</p>
+					<h2 id="backup-title">Copias disponibles</h2>
+					<p>Restaura una copia SQL guardada en Google Drive.</p>
 				</div>
-				<p id="restore-status" class="restore-status" role="status" aria-live="polite"></p>
-			</form>
+				<button id="refresh-backups" class="button button-secondary" type="button">Actualizar lista</button>
+			</div>
+			<div id="backup-list" class="backup-list" aria-live="polite">
+				<p class="backup-message">Cargando copias...</p>
+			</div>
 		</section>
 
 		<section class="content-panel">
@@ -77,10 +91,14 @@
 							<td class="product-name" th:text="${p.nombre}"></td>
 							<td class="price" th:text="${'$ ' + #numbers.formatDecimal(p.precio, 1, 2)}"></td>
 							<td class="actions">
-								<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}" title="Ver detalle">Ver</a>
-								<a class="action-link" th:href="@{/productos/editar/{id}(id=${p.id})}" title="Editar producto">Editar</a>
-								<form th:action="@{/productos/eliminar/{id}(id=${p.id})}" method="post" onsubmit="return confirm('¿Eliminar este producto?');">
-									<button class="action-link danger" type="submit" title="Eliminar producto">Eliminar</button>
+								<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}"
+									title="Ver detalle">Ver</a>
+								<a class="action-link" th:href="@{/productos/editar/{id}(id=${p.id})}"
+									title="Editar producto">Editar</a>
+								<form th:action="@{/productos/eliminar/{id}(id=${p.id})}" method="post"
+									onsubmit="return confirm('¿Eliminar este producto?');">
+									<button class="action-link danger" type="submit"
+										title="Eliminar producto">Eliminar</button>
 								</form>
 							</td>
 						</tr>
@@ -97,42 +115,102 @@
 	</main>
 
 	<script>
-		const restoreForm = document.getElementById('restore-form');
-		const restorePoint = document.getElementById('restore-point');
-		const restoreStatus = document.getElementById('restore-status');
+		const backupList = document.getElementById('backup-list');
+		const refreshBackups = document.getElementById('refresh-backups');
+		const deleteDbButton = document.getElementById('delete-db-button');
+		const restoreDbButton = document.getElementById('restore-db-button');
+		const demoStatus = document.getElementById('demo-status');
 
-		restoreForm.addEventListener('submit', async (event) => {
-			event.preventDefault();
-			const selectedDate = new Date(restorePoint.value);
-
-			if (!confirm('La restauración puede reemplazar datos actuales. ¿Deseas continuar?')) {
-				return;
-			}
-
-			restoreStatus.textContent = 'Solicitando restauración...';
-			restoreStatus.className = 'restore-status';
-
+		async function runDemoAction(button, endpoint, loadingMessage, successMessage) {
+			button.disabled = true;
+			const originalText = button.textContent;
+			button.textContent = loadingMessage;
+			demoStatus.textContent = loadingMessage;
+			demoStatus.className = 'demo-status';
 			try {
-				const response = await fetch('/api/database/restore', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({
-						restore_to_point_in_time: selectedDate.toISOString()
-					})
-				});
+				const response = await fetch(endpoint, { method: 'POST' });
 				const result = await response.json().catch(() => ({}));
-
-				if (!response.ok) {
-					throw new Error(result.error || 'Neon rechazó la restauración.');
-				}
-
-				restoreStatus.textContent = 'Restauración solicitada correctamente.';
-				restoreStatus.className = 'restore-status success';
+				if (!response.ok) throw new Error(result.message || 'La operación no pudo completarse.');
+				demoStatus.textContent = result.message || successMessage;
+				demoStatus.className = 'demo-status success';
+				alert(result.message || successMessage);
+				window.location.reload();
 			} catch (error) {
-				restoreStatus.textContent = error.message;
-				restoreStatus.className = 'restore-status error';
+				demoStatus.textContent = error.message;
+				demoStatus.className = 'demo-status error';
+				button.disabled = false;
+				button.textContent = originalText;
+			}
+		}
+
+		deleteDbButton.addEventListener('click', () => {
+			if (confirm('Se eliminarán todas las tablas y registros. ¿Deseas simular el desastre?')) {
+				runDemoAction(deleteDbButton, '/api/delete-db', 'Eliminando base de datos...', 'Base de datos eliminada completamente');
 			}
 		});
+
+		restoreDbButton.addEventListener('click', () => {
+			runDemoAction(restoreDbButton, '/api/restore-db', 'Restaurando base de datos desde Google Drive...', 'Base de datos restaurada con éxito desde Google Drive');
+		});
+
+		function formatBackupDate(value) {
+			if (!value) return 'Fecha no disponible';
+			return new Intl.DateTimeFormat('es-ES', {
+				dateStyle: 'medium', timeStyle: 'short'
+			}).format(new Date(value));
+		}
+
+		async function loadBackups() {
+			backupList.innerHTML = '<p class="backup-message">Cargando copias...</p>';
+			try {
+				const response = await fetch('/api/database/backups');
+				const result = await response.json().catch(() => ({}));
+				if (!response.ok) throw new Error(result.error || 'No se pudieron cargar las copias.');
+
+				if (!result.length) {
+					backupList.innerHTML = '<p class="backup-message">No hay copias disponibles en Google Drive.</p>';
+					return;
+				}
+
+				backupList.innerHTML = result.map((backup) => `
+					<div class="backup-row">
+						<div>
+							<strong>${backup.name}</strong>
+							<span>${formatBackupDate(backup.createdTime)}</span>
+						</div>
+						<button class="button button-danger restore-backup" type="button" data-file-id="${backup.id}" data-file-name="${backup.name}">Restaurar</button>
+					</div>
+				`).join('');
+			} catch (error) {
+				backupList.innerHTML = `<p class="backup-message error">${error.message}</p>`;
+			}
+		}
+
+		backupList.addEventListener('click', async (event) => {
+			const button = event.target.closest('.restore-backup');
+			if (!button || !confirm(`La copia ${button.dataset.fileName} reemplazará los datos actuales. ¿Deseas continuar?`)) return;
+
+			button.disabled = true;
+			button.textContent = 'Restaurando...';
+			try {
+				const response = await fetch('/api/database/restore-file', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ file_id: button.dataset.fileId })
+				});
+				const result = await response.json().catch(() => ({}));
+				if (!response.ok) throw new Error(result.error || 'No se pudo restaurar la copia.');
+				alert(result.message);
+				window.location.reload();
+			} catch (error) {
+				alert(error.message);
+				button.disabled = false;
+				button.textContent = 'Restaurar';
+			}
+		});
+
+		refreshBackups.addEventListener('click', loadBackups);
+		loadBackups();
 	</script>
 
 </body>

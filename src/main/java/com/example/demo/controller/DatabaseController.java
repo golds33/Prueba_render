@@ -9,39 +9,62 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.service.NeonRestoreService;
-import com.example.demo.service.NeonRestoreService.NeonRestoreException;
+import com.example.demo.service.DatabaseBackupBot;
+import com.example.demo.service.GoogleDriveService;
 
 @RestController
 @RequestMapping("/api/database")
 public class DatabaseController {
 
-    private final NeonRestoreService neonRestoreService;
+    private final DatabaseBackupBot backupBot;
+    private final GoogleDriveService googleDriveService;
 
-    public DatabaseController(NeonRestoreService neonRestoreService) {
-        this.neonRestoreService = neonRestoreService;
+    public DatabaseController(DatabaseBackupBot backupBot, GoogleDriveService googleDriveService) {
+        this.backupBot = backupBot;
+        this.googleDriveService = googleDriveService;
     }
 
-    @PostMapping("/restore")
-    public ResponseEntity<?> restore(@RequestBody RestoreRequest request) {
-        if (request == null || request.restoreToPointInTime() == null
-                || request.restoreToPointInTime().isBlank()) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "restore_to_point_in_time es obligatorio"));
-        }
-
+    @org.springframework.web.bind.annotation.GetMapping("/backups")
+    public ResponseEntity<?> listBackups() {
         try {
-            return neonRestoreService.restore(request.restoreToPointInTime());
-        } catch (NeonRestoreException exception) {
+            return ResponseEntity.ok(googleDriveService.listBackups());
+        } catch (Exception exception) {
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(
                     Map.of("error", exception.getMessage()));
         }
     }
 
-    public record RestoreRequest(String restore_to_point_in_time) {
+    @PostMapping("/restore-file")
+    public ResponseEntity<?> restoreFile(@RequestBody RestoreFileRequest request) {
+        if (request == null || request.fileId() == null || request.fileId().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "file_id es obligatorio"));
+        }
+        try {
+            return ResponseEntity.ok(Map.of("message",
+                    backupBot.restoreFromGoogleDrive(request.fileId(), googleDriveService)));
+        } catch (Exception exception) {
+            return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(
+                    Map.of("error", exception.getMessage()));
+        }
+    }
 
-        public String restoreToPointInTime() {
-            return restore_to_point_in_time;
+    @PostMapping("/backup")
+    public ResponseEntity<?> triggerManualBackup() {
+        try {
+            new Thread(() -> backupBot.executeAutomatedBackup()).start();
+            return ResponseEntity.ok(Map.of(
+                "status", "success", 
+                "message", "Bot de respaldo iniciado en segundo plano. Revisa la consola."
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    Map.of("error", e.getMessage()));
+        }
+    }
+
+    public record RestoreFileRequest(String file_id) {
+        public String fileId() {
+            return file_id;
         }
     }
 }
