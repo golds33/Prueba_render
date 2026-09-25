@@ -48,13 +48,13 @@ public class DatabaseController {
         }
     }
 
-    @PostMapping("/backup")
+   @PostMapping("/backup")
     public ResponseEntity<?> triggerManualBackup() {
         try {
-            new Thread(() -> backupBot.executeAutomatedBackup()).start();
+            backupBot.backupLatest();
             return ResponseEntity.ok(Map.of(
                 "status", "success", 
-                "message", "Bot de respaldo iniciado en segundo plano. Revisa la consola."
+                "message", "Respaldo manual creado y enviado a tu Drive exitosamente."
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
