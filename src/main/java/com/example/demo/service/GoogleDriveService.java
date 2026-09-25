@@ -2,7 +2,6 @@ package com.example.demo.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import com.google.api.client.http.FileContent;
@@ -27,17 +27,15 @@ import com.google.auth.oauth2.GoogleCredentials;
 public class GoogleDriveService {
 
     public static final String LATEST_BACKUP_NAME = "backup_latest.sql";
+    private static final String LOCAL_CREDENTIALS_FILE = "credenciales_bakups_google.json";
 
     private final String folderId;
-    private final String credentialsPath;
     private final String credentialsJson;
 
     public GoogleDriveService(
             @Value("${google.drive.folder-id}") String folderId,
-            @Value("${google.drive.credentials-path}") String credentialsPath,
             @Value("${google.drive.credentials-json}") String credentialsJson) {
         this.folderId = folderId;
-        this.credentialsPath = credentialsPath;
         this.credentialsJson = credentialsJson;
     }
 
@@ -159,11 +157,13 @@ public class GoogleDriveService {
         if (!credentialsJson.isBlank()) {
             return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
         }
-        if (!credentialsPath.isBlank()) {
-            return new FileInputStream(credentialsPath);
+        ClassPathResource localCredentials = new ClassPathResource(LOCAL_CREDENTIALS_FILE);
+        if (localCredentials.exists()) {
+            return localCredentials.getInputStream();
         }
         throw new IllegalStateException(
-                "Configura GOOGLE_DRIVE_CREDENTIALS_JSON o GOOGLE_DRIVE_CREDENTIALS_PATH.");
+                "Configura GOOGLE_CREDENTIALS_JSON o agrega " + LOCAL_CREDENTIALS_FILE
+                        + " al classpath.");
     }
 
     private void validateConfiguration() {
