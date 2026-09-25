@@ -44,6 +44,7 @@
 				<p>Comprueba el ciclo de desastre y recuperación usando la copia fija de Google Drive.</p>
 			</div>
 			<div class="demo-actions">
+				<button id="backup-db-button" class="button button-primary" type="button">💾 Crear Respaldo en Drive</button>
 				<button id="delete-db-button" class="button button-danger" type="button">🔴 Simular Desastre (Eliminar
 					Base de Datos)</button>
 				<button id="restore-db-button" class="button button-success" type="button">🟢 Restaurar desde Google
@@ -120,6 +121,7 @@
 		const deleteDbButton = document.getElementById('delete-db-button');
 		const restoreDbButton = document.getElementById('restore-db-button');
 		const demoStatus = document.getElementById('demo-status');
+		const backupDbButton = document.getElementById('backup-db-button');
 
 		async function runDemoAction(button, endpoint, loadingMessage, successMessage) {
 			button.disabled = true;
@@ -151,6 +153,15 @@
 
 		restoreDbButton.addEventListener('click', () => {
 			runDemoAction(restoreDbButton, '/api/restore-db', 'Restaurando base de datos desde Google Drive...', 'Base de datos restaurada con éxito desde Google Drive');
+		});
+
+		backupDbButton.addEventListener('click', () => {
+			runDemoAction(
+				backupDbButton,
+				'/api/database/backup',
+				'Generando y subiendo respaldo a Google Drive...',
+				'Respaldo manual creado y enviado a tu Drive exitosamente.'
+			);
 		});
 
 		function formatBackupDate(value) {

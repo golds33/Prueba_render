@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Google service-account credentials
+src/main/resources/credenciales_bakups_google.json
