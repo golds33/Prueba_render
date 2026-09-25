@@ -49,8 +49,7 @@ public class DatabaseBackupBot {
     }
 
     public void deleteDatabase() {
-        jdbcTemplate.execute("DROP SCHEMA IF EXISTS public CASCADE");
-        jdbcTemplate.execute("CREATE SCHEMA public");
+        jdbcTemplate.execute("TRUNCATE TABLE productos RESTART IDENTITY CASCADE");
     }
 
     public void restoreLatest() throws Exception {
