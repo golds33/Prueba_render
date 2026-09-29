@@ -171,9 +171,14 @@ public class GoogleDriveService {
     }
 
     String resolveFolderId(Drive drive) throws Exception {
-        // Ignoramos la carpeta del usuario y guardamos directamente en la raíz 
-        // de la cuenta de servicio para evitar errores de permisos 404.
-        return "root";
+        if (folderId != null && !folderId.isBlank()) {
+            return folderId.trim();
+        }
+        String envFolder = System.getenv("GOOGLE_DRIVE_FOLDER_ID");
+        if (envFolder != null && !envFolder.isBlank()) {
+            return envFolder.trim();
+        }
+        return "1BqEeU9W1hGC4xLvaqrtJu3cxi1wd-ss4";
     }
 
     static String selectFolderId(String configuredFolderId, List<String> backupParents) {
