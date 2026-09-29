@@ -1,11 +1,11 @@
     package com.example.demo.model;
 
+    import jakarta.persistence.Column;
     import jakarta.persistence.Entity;
     import jakarta.persistence.GeneratedValue;
     import jakarta.persistence.GenerationType;
     import jakarta.persistence.Id;
     import jakarta.persistence.Table;
-    import jakarta.persistence.Column;
 
     @Entity
     @Table(name="productos")
@@ -21,6 +21,11 @@
 
         @Column(length = 2048)
         private String imagenUrl;
+
+        private byte[] imagenDatos;
+
+        @Column(length = 100)
+        private String imagenContentType;
 
         public Producto() {
         }
@@ -69,5 +74,21 @@
 
         public void setImagenUrl(String imagenUrl) {
             this.imagenUrl = imagenUrl == null || imagenUrl.isBlank() ? null : imagenUrl.trim();
+        }
+
+        public byte[] getImagenDatos() {
+            return imagenDatos;
+        }
+
+        public void setImagenDatos(byte[] imagenDatos) {
+            this.imagenDatos = imagenDatos;
+        }
+
+        public String getImagenContentType() {
+            return imagenContentType;
+        }
+
+        public void setImagenContentType(String imagenContentType) {
+            this.imagenContentType = imagenContentType;
         }
     }

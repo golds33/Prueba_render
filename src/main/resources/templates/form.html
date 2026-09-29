@@ -21,7 +21,8 @@
 			<h1 th:text="${producto.id == null ? 'Registrar producto' : 'Editar producto'}">Registrar producto</h1>
 			<p class="subtitle">Completa la información principal del producto.</p>
 
-			<form class="product-form" th:action="@{/productos/guardar}" th:object="${producto}" method="post">
+			<form class="product-form" th:action="@{/productos/guardar}" th:object="${producto}" method="post"
+				enctype="multipart/form-data">
 
 				<input type="hidden" th:field="*{id}">
 
@@ -36,12 +37,19 @@
 				<label for="stock">Unidades disponibles</label>
 				<input id="stock" type="number" min="0" step="1" th:field="*{stock}" placeholder="0" required>
 
-				<label for="imagenUrl">Imagen del producto (URL)</label>
-				<input id="imagenUrl" type="url" th:field="*{imagenUrl}" placeholder="https://ejemplo.com/producto.jpg"
-					maxlength="2048" autocomplete="url">
-				<div class="image-preview" id="image-preview" aria-live="polite">
-					<img id="image-preview-image" alt="Vista previa de la imagen" hidden>
-					<span id="image-preview-empty">Vista previa de imagen</span>
+				<label for="imagen">Imagen del producto</label>
+				<div class="image-dropzone" id="image-dropzone">
+					<input id="imagen" name="imagen" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
+						hidden>
+					<button class="button button-secondary" id="select-image" type="button">Seleccionar imagen</button>
+					<span id="image-preview-empty">Arrastra una imagen aquí o selecciónala (máximo 5 MB)</span>
+					<img id="image-preview-image" alt="Vista previa de la imagen"
+						th:if="${producto.imagenDatos != null}" th:src="@{/productos/imagen/{id}(id=${producto.id})}">
+					<img id="image-preview-image" alt="Vista previa de la imagen"
+						th:if="${producto.imagenDatos == null and producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl)}"
+						th:src="${producto.imagenUrl}">
+					<img id="image-preview-image" alt="Vista previa de la imagen" hidden
+						th:unless="${producto.imagenDatos != null or (producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl))}">
 				</div>
 
 				<div class="form-actions">
@@ -55,28 +63,56 @@
 		</section>
 	</main>
 	<script>
-		const imageInput = document.getElementById('imagenUrl');
+		const imageInput = document.getElementById('imagen');
 		const previewImage = document.getElementById('image-preview-image');
 		const previewEmpty = document.getElementById('image-preview-empty');
-		const imagePreview = document.getElementById('image-preview');
+		const imageDropzone = document.getElementById('image-dropzone');
+		const selectImageButton = document.getElementById('select-image');
+		const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+		let previewObjectUrl;
 
-		function updateImagePreview() {
-			const imageUrl = imageInput.value.trim();
-			imagePreview.classList.remove('has-error');
-			previewEmpty.textContent = 'Vista previa de imagen';
-			previewImage.hidden = !imageUrl;
-			previewEmpty.hidden = Boolean(imageUrl);
-			if (imageUrl) previewImage.src = imageUrl;
+		function showImageError(message) {
+			previewEmpty.textContent = message;
+			previewEmpty.hidden = false;
+			imageDropzone.classList.add('has-error');
 		}
 
-		imageInput.addEventListener('input', updateImagePreview);
-		previewImage.addEventListener('error', () => {
-			previewImage.hidden = true;
-			previewEmpty.hidden = false;
-			previewEmpty.textContent = 'No se pudo cargar la imagen';
-			imagePreview.classList.add('has-error');
+		function previewSelectedImage(file) {
+			imageDropzone.classList.remove('has-error');
+			if (!file) return;
+			if (!allowedImageTypes.includes(file.type)) {
+				imageInput.value = '';
+				return showImageError('Formato no permitido. Usa JPG, PNG, WEBP o GIF.');
+			}
+			if (file.size > 5 * 1024 * 1024) {
+				imageInput.value = '';
+				return showImageError('La imagen supera el límite de 5 MB.');
+			}
+			if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
+			previewObjectUrl = URL.createObjectURL(file);
+			previewImage.src = previewObjectUrl;
+			previewImage.classList.remove('is-hidden');
+			previewEmpty.hidden = true;
+		}
+
+		selectImageButton.addEventListener('click', () => imageInput.click());
+		imageInput.addEventListener('change', () => previewSelectedImage(imageInput.files[0]));
+		imageDropzone.addEventListener('dragover', (event) => {
+			event.preventDefault();
+			imageDropzone.classList.add('is-dragging');
 		});
-		updateImagePreview();
+		imageDropzone.addEventListener('dragleave', () => imageDropzone.classList.remove('is-dragging'));
+		imageDropzone.addEventListener('drop', (event) => {
+			event.preventDefault();
+			imageDropzone.classList.remove('is-dragging');
+			const [file] = event.dataTransfer.files;
+			if (!file) return;
+			const transfer = new DataTransfer();
+			transfer.items.add(file);
+			imageInput.files = transfer.files;
+			previewSelectedImage(file);
+		});
+		previewImage.addEventListener('error', () => showImageError('No se pudo cargar la imagen actual.'));
 	</script>
 
 </body>

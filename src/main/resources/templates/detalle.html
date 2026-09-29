@@ -23,7 +23,10 @@
 			</div>
 			<h1 th:text="${producto.nombre}">Nombre del producto</h1>
 			<p class="detail-id" th:text="${'Código #' + producto.id}">Código #1</p>
-			<img class="detail-image" th:if="${producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl)}"
+			<img class="detail-image" th:if="${producto.imagenDatos != null}"
+				th:src="@{/productos/imagen/{id}(id=${producto.id})}" th:alt="${'Imagen de ' + producto.nombre}">
+			<img class="detail-image"
+				th:if="${producto.imagenDatos == null and producto.imagenUrl != null and !#strings.isEmpty(producto.imagenUrl)}"
 				th:src="${producto.imagenUrl}" th:alt="${'Imagen de ' + producto.nombre}">
 			<div class="detail-price" th:text="${'$ ' + #numbers.formatDecimal(producto.precio, 1, 2)}">$ 0.00</div>
 			<p class="detail-stock"><span>Existencias</span><strong th:text="${producto.stock + ' unidades'}">0

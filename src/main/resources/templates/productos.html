@@ -97,11 +97,14 @@
 						<tr th:each="p : ${productos}">
 							<td class="muted" th:text="${'#' + p.id}"></td>
 							<td>
+								<img class="product-thumb" th:if="${p.imagenDatos != null}"
+									th:src="@{/productos/imagen/{id}(id=${p.id})}" th:alt="${'Imagen de ' + p.nombre}"
+									loading="lazy">
 								<img class="product-thumb"
-									th:if="${p.imagenUrl != null and !#strings.isEmpty(p.imagenUrl)}"
+									th:if="${p.imagenDatos == null and p.imagenUrl != null and !#strings.isEmpty(p.imagenUrl)}"
 									th:src="${p.imagenUrl}" th:alt="${'Imagen de ' + p.nombre}" loading="lazy">
 								<span class="image-placeholder"
-									th:unless="${p.imagenUrl != null and !#strings.isEmpty(p.imagenUrl)}">Sin
+									th:if="${p.imagenDatos == null and (p.imagenUrl == null or #strings.isEmpty(p.imagenUrl))}">Sin
 									imagen</span>
 							</td>
 							<td class="product-name" th:text="${p.nombre}"></td>
@@ -109,16 +112,18 @@
 							<td><span class="stock-pill"
 									th:classappend="${p.stock == 0 ? ' stock-empty' : ' stock-available'}"
 									th:text="${p.stock + ' unidades'}">0 unidades</span></td>
-							<td class="actions">
-								<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}"
-									title="Ver detalle">Ver</a>
-								<a class="action-link" th:href="@{/productos/editar/{id}(id=${p.id})}"
-									title="Editar producto">Editar</a>
-								<form th:action="@{/productos/eliminar/{id}(id=${p.id})}" method="post"
-									onsubmit="return confirm('¿Eliminar este producto?');">
-									<button class="action-link danger" type="submit"
-										title="Eliminar producto">Eliminar</button>
-								</form>
+							<td>
+								<div class="product-actions" role="group" aria-label="Acciones del producto">
+									<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}"
+										title="Ver detalle">Ver</a>
+									<a class="action-link" th:href="@{/productos/editar/{id}(id=${p.id})}"
+										title="Editar producto">Editar</a>
+									<form th:action="@{/productos/eliminar/{id}(id=${p.id})}" method="post"
+										onsubmit="return confirm('¿Eliminar este producto?');">
+										<button class="action-link danger" type="submit"
+											title="Eliminar producto">Eliminar</button>
+									</form>
+								</div>
 							</td>
 						</tr>
 					</tbody>
