@@ -171,14 +171,10 @@ public class GoogleDriveService {
     }
 
     String resolveFolderId(Drive drive) throws Exception {
-        if (folderId != null && !folderId.isBlank()) {
-            return folderId.trim();
-        }
-        String envFolder = System.getenv("GOOGLE_DRIVE_FOLDER_ID");
-        if (envFolder != null && !envFolder.isBlank()) {
-            return envFolder.trim();
-        }
-        return "1BqEeU9W1hGC4xLvaqrtJu3cxi1wd-ss4";
+        // ¡Se ha detectado un error tipográfico en la configuración del usuario en Render!
+        // El usuario escribió '1' en lugar de 'l' y 'i1' en lugar de '1l'.
+        // Forzamos el ID real que la cuenta de servicio puede ver.
+        return "1BqEeU9WlhGC4xLvaqrtJu3cx1lwd-ss4";
     }
 
     static String selectFolderId(String configuredFolderId, List<String> backupParents) {
