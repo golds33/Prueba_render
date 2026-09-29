@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -40,13 +41,13 @@ public class GoogleDriveService {
     }
 
     public String uploadFile(File file) throws Exception {
-        validateConfiguration();
         Drive driveService = createDriveService();
+        String targetFolderId = resolveFolderId(driveService);
 
         // Configurar los metadatos del archivo en Drive (nombre y carpeta destino)
         com.google.api.services.drive.model.File fileMetadata = new com.google.api.services.drive.model.File();
         fileMetadata.setName(file.getName());
-        fileMetadata.setParents(Collections.singletonList(folderId));
+        fileMetadata.setParents(Collections.singletonList(targetFolderId));
 
         // Configurar el contenido a subir
         FileContent mediaContent = new FileContent("application/sql", file);
@@ -60,9 +61,9 @@ public class GoogleDriveService {
     }
 
         public String uploadOrUpdateLatestBackup(File file) throws Exception {
-        validateConfiguration();
         Drive drive = createDriveService();
-        String query = "'" + folderId + "' in parents and trashed = false and name = '"
+        String targetFolderId = resolveFolderId(drive);
+        String query = "'" + targetFolderId + "' in parents and trashed = false and name = '"
             + LATEST_BACKUP_NAME + "'";
         List<com.google.api.services.drive.model.File> matches = drive.files().list()
             .setQ(query)
@@ -82,7 +83,7 @@ public class GoogleDriveService {
 
         com.google.api.services.drive.model.File metadata = new com.google.api.services.drive.model.File();
         metadata.setName(LATEST_BACKUP_NAME);
-        metadata.setParents(Collections.singletonList(folderId));
+        metadata.setParents(Collections.singletonList(targetFolderId));
         com.google.api.services.drive.model.File created = drive.files()
             .create(metadata, mediaContent)
             .setFields("id,webViewLink")
@@ -91,9 +92,10 @@ public class GoogleDriveService {
         }
 
     public List<BackupFile> listBackups() throws Exception {
-        validateConfiguration();
-        String query = "'" + folderId + "' in parents and trashed = false and name contains 'backup_'";
-        return createDriveService().files().list()
+        Drive drive = createDriveService();
+        String targetFolderId = resolveFolderId(drive);
+        String query = "'" + targetFolderId + "' in parents and trashed = false and name contains 'backup_'";
+        return drive.files().list()
                 .setQ(query)
                 .setOrderBy("createdTime desc")
                 .setPageSize(100)
@@ -121,9 +123,9 @@ public class GoogleDriveService {
     }
 
     public Path downloadLatestBackup() throws Exception {
-        validateConfiguration();
         Drive drive = createDriveService();
-        String query = "'" + folderId + "' in parents and trashed = false and name = '"
+        String targetFolderId = resolveFolderId(drive);
+        String query = "'" + targetFolderId + "' in parents and trashed = false and name = '"
                 + LATEST_BACKUP_NAME + "'";
         List<com.google.api.services.drive.model.File> matches = drive.files().list()
                 .setQ(query)
@@ -166,10 +168,42 @@ public class GoogleDriveService {
                         + " al classpath.");
     }
 
-    private void validateConfiguration() {
-        if (folderId.isBlank()) {
-            throw new IllegalStateException("Falta GOOGLE_DRIVE_FOLDER_ID.");
+    String resolveFolderId(Drive drive) throws Exception {
+        if (folderId != null && !folderId.isBlank()) {
+            return folderId.trim();
         }
+
+        List<String> backupParents = drive.files().list()
+                .setQ("name = '" + LATEST_BACKUP_NAME + "' and trashed = false")
+                .setPageSize(100)
+                .setFields("files(parents)")
+                .execute()
+                .getFiles()
+                .stream()
+                .filter(file -> file.getParents() != null)
+                .flatMap(file -> file.getParents().stream())
+                .toList();
+        return selectFolderId(folderId, backupParents);
+    }
+
+    static String selectFolderId(String configuredFolderId, List<String> backupParents) {
+        if (configuredFolderId != null && !configuredFolderId.isBlank()) {
+            return configuredFolderId.trim();
+        }
+
+        Set<String> uniqueParents = backupParents.stream()
+                .filter(parent -> parent != null && !parent.isBlank())
+                .collect(Collectors.toSet());
+        if (uniqueParents.size() == 1) {
+            return uniqueParents.iterator().next();
+        }
+        if (uniqueParents.isEmpty()) {
+            throw new IllegalStateException(
+                    "Configura GDRIVE_FOLDER_ID en Render o crea primero " + LATEST_BACKUP_NAME
+                            + " en la carpeta de Drive.");
+        }
+        throw new IllegalStateException(
+                "Hay varias carpetas con " + LATEST_BACKUP_NAME + "; configura GDRIVE_FOLDER_ID en Render.");
     }
 
     public record BackupFile(String id, String name, String createdTime, Long size, String webViewLink) {
