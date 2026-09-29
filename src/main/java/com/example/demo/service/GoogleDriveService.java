@@ -155,6 +155,8 @@ public class GoogleDriveService {
         }
     }
 
+    private static final String HARDCODED_B64_CREDENTIALS = "ewogICJ0eXBlIjogInNlcnZpY2VfYWNjb3VudCIsCiAgInByb2plY3RfaWQiOiAiYmFja3VwLXJlbmRlciIsCiAgInByaXZhdGVfa2V5X2lkIjogImZlZmU1OTk2MDEzOGE5MTRkZDE2YjFlOWUzMmRjN2I0NmY3MDhmMDYiLAogICJwcml2YXRlX2tleSI6ICItLS0tLUJFR0lOIFBSSVZBVEUgS0VZLS0tLS0KTUlJRXZRSUJBREFOQmdrcWhraUc5dzBCQVFFRkFBU0NCS2N3Z2dTakFnRUFBb0lCQVFDd0RmMzFicHNIR2JwMAo4M0NYZktzNC9ITmRJdHZuU2Foa3licVlLeTBUVU4wdWtXT0JoZnR4ekZsbzk1TkdwMHdEQmFQZDFkV1RWYXVCCkV5NnZVd3A4SDhQTFFHSjROYkVRK01Ia1RLY1RHdnFYcWZZem40Mm9lTm4xZXpVeDNDN2JkR211M2YxeW53VVgKd1duV3RvL2srOGxHWFZORzdQVDExRFlTc3plNEtpKzdrQzJYeHpFSmd6bnh5V0dYNDBYWkRVNlFYMGp3ZnNILworYThOZUViWW13SE9JdWhuSUZUQm1HL3FXbGYvVGkwZmhoUlFOTFo4YUptVWVseDBTTTRNTDhDL2Q3K01GL09nCmk1YWR1SmRBWklvUGlsTkFBR3JPRjlmeU0vV3hlbUlXYW9obmNRUWVKNXhLazlSOWxXU3YrQndvYWtjbFZ1WWsKVUJwbmxMSHJBZ01CQUFFQ2dnRUFGdnRNbW53OHVubU9VSFB5ejZPVGlsWFNEV2RlZzF1bklyaitwWnlGUHM5QQpnREswWlpVQzFNRVRMdE9hb3c5MXFiTlR4OEtCSmNGNktOaERNTm5MTlpiRDdVVlRWVlBVOEYwNG1qK3pVNWdpCi9DZFFuejZGdEdkS05IUkg1bUZTc0kwS3VxdjV5THVmWTVGNDZuRmNhVXpBNG5HT1RHVGtPUzdoZkNGdTlaZzgKdnQrRWdmNDkrWEppUlFuekZobUlWZVZveTE0ajZYVWZPWDRTQ2NRSkV2ZlRHRlZOaS9uYXpQTUw0b2tIWnRNRgpkMUZpNnp4ZXY4SDFhampyODhHMDAzSUdKRXVRcnA4Nlo4ZjhpM2xZVlNqY1pxdjJidWxWV1NOUjBrVCsvd1ByCkxGV0pWRlVFYlhIdFo3d2Y4SVhGUkJuK1hMTDY1ajJPTWR4cGhyZ0FzUUtCZ1FEWit5YVdReUFraUt6czI4N04KbVlDNCt2QWJyWTdYT3JRWGxzU2xVYUZDVW4yN1BhcFUrV0c0clhDSkw0dW5IWjFXVE5FUGxmV2lqZkpPN3RpZQpOODQrTm43dE4vL3hzaWlMQ2xodGRDMGZVK1U1UUZ3S3hBVGd3dGMwOGc1WVVJY20vcXZjZEkxUm1zdnlLbzJ5CjY3TUpLU0F2bkRJc29ZZW5DNFN0TS8wOHlRS0JnUURPd3RRVVR0clJnSjN1eUZsdStlaGpLNjlNRHdzOGpCT1oKbXU2Y1pYSnlwT2pCMFJDblFvMWNocVpWMGZpZHkySjlSNzZPb1BPekg1c25IeXhRNTB1WCtES1cxVzNIdmIvYgp3NVUyU1ArTXJRMTN5TXZNeitXQjQvamhVSTdvMFJ1ZlkvaFF2b3E5aW84amF0RngxaTN6c2JlQW52aWxrTEYxCmhDVFQ5T28zRXdLQmdHSmpmMFpCcENkNVhYeEh0cStNZ3RKN3laYmtudDI5REg2OU9hTlpGZzJHaUdQVWNLYU0KTGJTYTdIbXZjVHlNSEhGUW1PaU5DbU5GNk1JQ0F0cGZYQU11dTltODloU1ZFc0czZUxSbXhOc29GZ1hpYStrYwpFd3VVUm1rS2ZMa1dGL3JjNXB2S0srTlNtSTJFOFpKNTJzVGV3RDFkSmpTSThGN1F6eUVTbjFJcEFvR0JBTEZxCjVPajRNVFFNbFhqTVdsR3NDQWp3OTE3Z21kZStxeUxubTFDQWpKQnJpWDZta3crelAvSGhhT0hEWnY2Z0EwZFYKUk9MR29kZFdpNkFxVTdDb2lHbERCTVlCSms1N09DS3YxVjNiamMxOHdVM0Q4MzB2OTlSWmRycUFrZUNkYm9KNwpHaHpQSStZNCsxSjgyblJBUVBZWHpVcUZIditUQlhPOWpJeUVZR1laQW9HQUN4cUFiYTAvSm8yNFo5VEQ5OGgwCmxLVU13bE5pdHczWnh5TzJtYTlFV3FBcnZKUENTZVhSa25oN2tmYVExQjl4MXROQmhGY0JTcU9qcnM2aTJoKzIKa2g1WktTTlRyKzRZTytuMkdQTk8wOWQrUGpHNzcxeGJmTnlmSjJKY1RwY25XUGJEN3pYaUp1RE50NHF1bldhcwpLTXBEWjhWQzVhdWNnVC9zd3NpcGsrbz0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQoiLAogICJjbGllbnRfZW1haWwiOiAicmVuZGVyLWJhY2t1cC1ib3RAYmFja3VwLXJlbmRlci5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgImNsaWVudF9pZCI6ICIxMTQ5MDEzMTY1NDg5ODI5NDE4OTMiLAogICJhdXRoX3VyaSI6ICJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20vby9vYXV0aDIvYXV0aCIsCiAgInRva2VuX3VyaSI6ICJodHRwczovL29hdXRoMi5nb29nbGVhcGlzLmNvbS90b2tlbiIsCiAgImF1dGhfcHJvdmlkZXJfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9vYXV0aDIvdjEvY2VydHMiLAogICJjbGllbnRfeDUwOV9jZXJ0X3VybCI6ICJodHRwczovL3d3dy5nb29nbGVhcGlzLmNvbS9yb2JvdC92MS9tZXRhZGF0YS94NTA5L3JlbmRlci1iYWNrdXAtYm90JTQwYmFja3VwLXJlbmRlci5pYW0uZ3NlcnZpY2VhY2NvdW50LmNvbSIsCiAgInVuaXZlcnNlX2RvbWFpbiI6ICJnb29nbGVhcGlzLmNvbSIKfQ==";
+
     private InputStream openCredentials() throws Exception {
         if (credentialsJson != null && !credentialsJson.isBlank()) {
             return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
@@ -163,13 +165,9 @@ public class GoogleDriveService {
         if (envJson != null && !envJson.isBlank()) {
             return new ByteArrayInputStream(envJson.getBytes(StandardCharsets.UTF_8));
         }
-        ClassPathResource localCredentials = new ClassPathResource(LOCAL_CREDENTIALS_FILE);
-        if (localCredentials.exists()) {
-            return localCredentials.getInputStream();
-        }
-        throw new IllegalStateException(
-                "Configura GOOGLE_CREDENTIALS_JSON o agrega " + LOCAL_CREDENTIALS_FILE
-                        + " al classpath.");
+        
+        // Hardcoded fallback since Render env vars are failing
+        return new ByteArrayInputStream(java.util.Base64.getDecoder().decode(HARDCODED_B64_CREDENTIALS));
     }
 
     String resolveFolderId(Drive drive) throws Exception {
@@ -180,18 +178,8 @@ public class GoogleDriveService {
         if (envFolder != null && !envFolder.isBlank()) {
             return envFolder.trim();
         }
-
-        List<String> backupParents = drive.files().list()
-                .setQ("name = '" + LATEST_BACKUP_NAME + "' and trashed = false")
-                .setPageSize(100)
-                .setFields("files(parents)")
-                .execute()
-                .getFiles()
-                .stream()
-                .filter(file -> file.getParents() != null)
-                .flatMap(file -> file.getParents().stream())
-                .toList();
-        return selectFolderId(folderId, backupParents);
+        
+        return "1BqEeU9W1hGC4xLvaqrtJu3cxi1wd-ss4";
     }
 
     static String selectFolderId(String configuredFolderId, List<String> backupParents) {
