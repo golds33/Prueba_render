@@ -156,8 +156,12 @@ public class GoogleDriveService {
     }
 
     private InputStream openCredentials() throws Exception {
-        if (!credentialsJson.isBlank()) {
+        if (credentialsJson != null && !credentialsJson.isBlank()) {
             return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
+        }
+        String envJson = System.getenv("GOOGLE_CREDENTIALS_JSON");
+        if (envJson != null && !envJson.isBlank()) {
+            return new ByteArrayInputStream(envJson.getBytes(StandardCharsets.UTF_8));
         }
         ClassPathResource localCredentials = new ClassPathResource(LOCAL_CREDENTIALS_FILE);
         if (localCredentials.exists()) {
@@ -171,6 +175,10 @@ public class GoogleDriveService {
     String resolveFolderId(Drive drive) throws Exception {
         if (folderId != null && !folderId.isBlank()) {
             return folderId.trim();
+        }
+        String envFolder = System.getenv("GOOGLE_DRIVE_FOLDER_ID");
+        if (envFolder != null && !envFolder.isBlank()) {
+            return envFolder.trim();
         }
 
         List<String> backupParents = drive.files().list()
