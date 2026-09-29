@@ -31,9 +31,9 @@
 				<span>en tu catálogo actual</span>
 			</div>
 			<div class="summary-card">
-				<span class="summary-label">Gestión rápida</span>
-				<strong>CRUD</strong>
-				<span>crear, consultar, editar y eliminar</span>
+				<span class="summary-label">Productos con stock</span>
+				<strong th:text="${#lists.size(productos.?[stock > 0])}">0</strong>
+				<span>listos para vender</span>
 			</div>
 		</section>
 
@@ -75,22 +75,40 @@
 				</div>
 				<span class="live-indicator"><span></span> Actualizado</span>
 			</div>
+			<div class="table-tools" th:if="${not #lists.isEmpty(productos)}">
+				<label for="product-search">Buscar producto</label>
+				<input id="product-search" type="search" placeholder="Nombre o código..." autocomplete="off">
+				<span id="visible-products" th:text="${#lists.size(productos) + ' productos'}">0 productos</span>
+			</div>
 
 			<div class="table-wrapper" th:if="${not #lists.isEmpty(productos)}">
 				<table>
 					<thead>
 						<tr>
 							<th>ID</th>
+							<th>Imagen</th>
 							<th>Producto</th>
 							<th>Precio</th>
+							<th>Stock</th>
 							<th class="actions-column">Acciones</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr th:each="p : ${productos}">
 							<td class="muted" th:text="${'#' + p.id}"></td>
+							<td>
+								<img class="product-thumb"
+									th:if="${p.imagenUrl != null and !#strings.isEmpty(p.imagenUrl)}"
+									th:src="${p.imagenUrl}" th:alt="${'Imagen de ' + p.nombre}" loading="lazy">
+								<span class="image-placeholder"
+									th:unless="${p.imagenUrl != null and !#strings.isEmpty(p.imagenUrl)}">Sin
+									imagen</span>
+							</td>
 							<td class="product-name" th:text="${p.nombre}"></td>
 							<td class="price" th:text="${'$ ' + #numbers.formatDecimal(p.precio, 1, 2)}"></td>
+							<td><span class="stock-pill"
+									th:classappend="${p.stock == 0 ? ' stock-empty' : ' stock-available'}"
+									th:text="${p.stock + ' unidades'}">0 unidades</span></td>
 							<td class="actions">
 								<a class="action-link" th:href="@{/productos/detalle/{id}(id=${p.id})}"
 									title="Ver detalle">Ver</a>
@@ -222,6 +240,21 @@
 
 		refreshBackups.addEventListener('click', loadBackups);
 		loadBackups();
+
+		const productSearch = document.getElementById('product-search');
+		if (productSearch) {
+			productSearch.addEventListener('input', () => {
+				const query = productSearch.value.trim().toLocaleLowerCase('es');
+				const rows = [...document.querySelectorAll('tbody tr')];
+				let visibleCount = 0;
+				rows.forEach((row) => {
+					const isVisible = row.textContent.toLocaleLowerCase('es').includes(query);
+					row.hidden = !isVisible;
+					if (isVisible) visibleCount += 1;
+				});
+				document.getElementById('visible-products').textContent = `${visibleCount} producto(s)`;
+			});
+		}
 	</script>
 
 </body>

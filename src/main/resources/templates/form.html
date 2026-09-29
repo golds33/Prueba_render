@@ -16,7 +16,8 @@
 		</nav>
 		<a class="back-link" th:href="@{/productos}">&larr; Volver al catálogo</a>
 		<section class="form-panel">
-			<p class="eyebrow" th:text="${producto.id == null ? 'Nuevo registro' : 'Actualizar registro'}">Nuevo registro</p>
+			<p class="eyebrow" th:text="${producto.id == null ? 'Nuevo registro' : 'Actualizar registro'}">Nuevo
+				registro</p>
 			<h1 th:text="${producto.id == null ? 'Registrar producto' : 'Editar producto'}">Registrar producto</h1>
 			<p class="subtitle">Completa la información principal del producto.</p>
 
@@ -25,19 +26,58 @@
 				<input type="hidden" th:field="*{id}">
 
 				<label for="nombre">Nombre del producto</label>
-				<input id="nombre" type="text" th:field="*{nombre}" placeholder="Ej. Café molido" required maxlength="120">
+				<input id="nombre" type="text" th:field="*{nombre}" placeholder="Ej. Café molido" required
+					maxlength="120">
 
 				<label for="precio">Precio</label>
-				<div class="input-prefix"><span>$</span><input id="precio" type="number" step="0.01" min="0" th:field="*{precio}" placeholder="0.00" required></div>
+				<div class="input-prefix"><span>$</span><input id="precio" type="number" step="0.01" min="0"
+						th:field="*{precio}" placeholder="0.00" required></div>
+
+				<label for="stock">Unidades disponibles</label>
+				<input id="stock" type="number" min="0" step="1" th:field="*{stock}" placeholder="0" required>
+
+				<label for="imagenUrl">Imagen del producto (URL)</label>
+				<input id="imagenUrl" type="url" th:field="*{imagenUrl}" placeholder="https://ejemplo.com/producto.jpg"
+					maxlength="2048" autocomplete="url">
+				<div class="image-preview" id="image-preview" aria-live="polite">
+					<img id="image-preview-image" alt="Vista previa de la imagen" hidden>
+					<span id="image-preview-empty">Vista previa de imagen</span>
+				</div>
 
 				<div class="form-actions">
 					<a class="button button-secondary" th:href="@{/productos}">Cancelar</a>
-					<button class="button button-primary" type="submit" th:text="${producto.id == null ? 'Guardar producto' : 'Guardar cambios'}">Guardar producto</button>
+					<button class="button button-primary" type="submit"
+						th:text="${producto.id == null ? 'Guardar producto' : 'Guardar cambios'}">Guardar
+						producto</button>
 				</div>
 
 			</form>
 		</section>
 	</main>
+	<script>
+		const imageInput = document.getElementById('imagenUrl');
+		const previewImage = document.getElementById('image-preview-image');
+		const previewEmpty = document.getElementById('image-preview-empty');
+		const imagePreview = document.getElementById('image-preview');
+
+		function updateImagePreview() {
+			const imageUrl = imageInput.value.trim();
+			imagePreview.classList.remove('has-error');
+			previewEmpty.textContent = 'Vista previa de imagen';
+			previewImage.hidden = !imageUrl;
+			previewEmpty.hidden = Boolean(imageUrl);
+			if (imageUrl) previewImage.src = imageUrl;
+		}
+
+		imageInput.addEventListener('input', updateImagePreview);
+		previewImage.addEventListener('error', () => {
+			previewImage.hidden = true;
+			previewEmpty.hidden = false;
+			previewEmpty.textContent = 'No se pudo cargar la imagen';
+			imagePreview.classList.add('has-error');
+		});
+		updateImagePreview();
+	</script>
 
 </body>
 
