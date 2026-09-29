@@ -375,6 +375,18 @@ h2 {
 	padding-bottom: 0;
 }
 
+.backup-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.backup-drive-link {
+	margin-left: 10px;
+	color: inherit;
+	font-weight: 700;
+}
+
 .backup-row strong,
 .backup-row span {
 	display: block;

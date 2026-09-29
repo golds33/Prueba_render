@@ -4,20 +4,25 @@ import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.example.demo.repository.ProductoRepository;
+import com.example.demo.service.DatabaseBackupBot;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -27,6 +32,29 @@ class TriggersApplicationTests {
 
 	@Autowired
 	private ProductoRepository productoRepository;
+
+	@MockitoBean
+	private DatabaseBackupBot backupBot;
+
+	@Test
+	void manualBackupReturnsDriveLink() throws Exception {
+		when(backupBot.backupLatest()).thenReturn("https://drive.google.com/file/d/backup-id/view");
+
+		mockMvc.perform(post("/api/database/backup"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.status").value("success"))
+			.andExpect(jsonPath("$.webViewLink").value("https://drive.google.com/file/d/backup-id/view"));
+	}
+
+	@Test
+	void manualBackupReturnsActionableError() throws Exception {
+		doThrow(new IllegalStateException("pg_dump no pudo completar la operación."))
+			.when(backupBot).backupLatest();
+
+		mockMvc.perform(post("/api/database/backup"))
+			.andExpect(status().isInternalServerError())
+			.andExpect(jsonPath("$.error").value("pg_dump no pudo completar la operación."));
+	}
 
 	@Test
 	void productWithStockAndImageCanBeCreatedAndDisplayed() throws Exception {

@@ -155,9 +155,22 @@
 			try {
 				const response = await fetch(endpoint, { method: 'POST' });
 				const result = await response.json().catch(() => ({}));
-				if (!response.ok) throw new Error(result.message || 'La operación no pudo completarse.');
+				if (!response.ok) throw new Error(result.message || result.error || 'La operación no pudo completarse.');
 				demoStatus.textContent = result.message || successMessage;
 				demoStatus.className = 'demo-status success';
+				if (result.webViewLink) {
+					const driveLink = document.createElement('a');
+					driveLink.href = result.webViewLink;
+					driveLink.target = '_blank';
+					driveLink.rel = 'noopener noreferrer';
+					driveLink.className = 'backup-drive-link';
+					driveLink.textContent = 'Abrir respaldo en Google Drive';
+					demoStatus.append(' ', driveLink);
+					await loadBackups();
+					button.disabled = false;
+					button.textContent = originalText;
+					return;
+				}
 				alert(result.message || successMessage);
 				window.location.reload();
 			} catch (error) {
@@ -202,19 +215,44 @@
 				if (!response.ok) throw new Error(result.error || 'No se pudieron cargar las copias.');
 
 				if (!result.length) {
-					backupList.innerHTML = '<p class="backup-message">No hay copias disponibles en Google Drive.</p>';
+					const message = document.createElement('p');
+					message.className = 'backup-message';
+					message.textContent = 'No hay copias disponibles en Google Drive.';
+					backupList.replaceChildren(message);
 					return;
 				}
 
-				backupList.innerHTML = result.map((backup) => `
-					<div class="backup-row">
-						<div>
-							<strong>${backup.name}</strong>
-							<span>${formatBackupDate(backup.createdTime)}</span>
-						</div>
-						<button class="button button-danger restore-backup" type="button" data-file-id="${backup.id}" data-file-name="${backup.name}">Restaurar</button>
-					</div>
-				`).join('');
+				const rows = result.map((backup) => {
+					const row = document.createElement('div');
+					row.className = 'backup-row';
+					const details = document.createElement('div');
+					const name = document.createElement('strong');
+					name.textContent = backup.name;
+					const date = document.createElement('span');
+					date.textContent = formatBackupDate(backup.createdTime);
+					details.append(name, date);
+					const actions = document.createElement('div');
+					actions.className = 'backup-actions';
+					if (backup.webViewLink) {
+						const driveLink = document.createElement('a');
+						driveLink.href = backup.webViewLink;
+						driveLink.target = '_blank';
+						driveLink.rel = 'noopener noreferrer';
+						driveLink.className = 'action-link';
+						driveLink.textContent = 'Abrir en Drive';
+						actions.append(driveLink);
+					}
+					const restoreButton = document.createElement('button');
+					restoreButton.className = 'button button-danger restore-backup';
+					restoreButton.type = 'button';
+					restoreButton.dataset.fileId = backup.id;
+					restoreButton.dataset.fileName = backup.name;
+					restoreButton.textContent = 'Restaurar';
+					actions.append(restoreButton);
+					row.append(details, actions);
+					return row;
+				});
+				backupList.replaceChildren(...rows);
 			} catch (error) {
 				backupList.innerHTML = `<p class="backup-message error">${error.message}</p>`;
 			}

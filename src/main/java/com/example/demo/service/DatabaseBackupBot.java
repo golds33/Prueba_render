@@ -38,11 +38,11 @@ public class DatabaseBackupBot {
         }
     }
 
-    public void backupLatest() throws Exception {
+    public String backupLatest() throws Exception {
         File backupFile = new File(GoogleDriveService.LATEST_BACKUP_NAME);
         try {
             runDatabaseCommand("pg_dump", backupFile.toPath());
-            googleDriveService.uploadOrUpdateLatestBackup(backupFile);
+            return googleDriveService.uploadOrUpdateLatestBackup(backupFile);
         } finally {
             Files.deleteIfExists(backupFile.toPath());
         }

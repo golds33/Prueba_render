@@ -51,10 +51,11 @@ public class DatabaseController {
    @PostMapping("/backup")
     public ResponseEntity<?> triggerManualBackup() {
         try {
-            backupBot.backupLatest();
+            String webViewLink = backupBot.backupLatest();
             return ResponseEntity.ok(Map.of(
                 "status", "success", 
-                "message", "Respaldo manual creado y enviado a tu Drive exitosamente."
+                "message", "Respaldo manual creado y enviado a tu Drive exitosamente.",
+                "webViewLink", webViewLink
             ));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
